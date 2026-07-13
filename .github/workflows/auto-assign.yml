@@ -12,8 +12,26 @@ jobs:
       pull-requests: write
     steps:
     - name: 'Auto-assign issue'
+      if: github.event_name == 'issues'
       uses: pozil/auto-assign-issue@v1
       with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          assignees: cvoschion-beep
-          numOfAssignee: 1
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        # Assegnazione casuale delle Issue tra i 4 membri del team
+        assignees: fabolova, joanacurri, ct01p, cvoschion-beep
+        numOfAssignee: 1
+
+    - name: 'Request PR Reviewers'
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          // Richiesta di approvazione per le Pull Request a tutto il team
+          const teamReviewers = ['fabolova', 'joanacurri', 'ct01p', 'cvoschion-beep'];
+          
+          await github.rest.pulls.requestReviewers({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.payload.pull_request.number,
+            reviewers: teamReviewers
+          });
